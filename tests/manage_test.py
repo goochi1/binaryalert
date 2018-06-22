@@ -46,6 +46,7 @@ class FakeFilesystemBase(fake_filesystem_unittest.TestCase):
                 'aws_region = "{}" // comment2'.format(region),
                 'name_prefix = "{}" // comment3'.format(prefix),
                 'enable_carbon_black_downloader = {}'.format(1 if enable_downloader else 0),
+                'enable_safe_alerts = {}'.format(1 if enable_downloader else 0),
                 'carbon_black_url = "{}" //comment4'.format(cb_url),
                 'encrypted_carbon_black_api_token = "{}"'.format(encrypted_api_token),
                 'force_destroy = false',
@@ -69,6 +70,7 @@ class FakeFilesystemBase(fake_filesystem_unittest.TestCase):
                 'variable "aws_region" {}',
                 'variable "name_prefix" {}',
                 'variable "enable_carbon_black_downloader" {}',
+                'variable "enable_safe_alerts" {}',
                 'variable "carbon_black_url" {}',
                 'variable "encrypted_carbon_black_api_token" {}'
             ])
@@ -89,6 +91,7 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         self.assertEqual('us-test-1', config.aws_region)
         self.assertEqual('test_prefix', config.name_prefix)
         self.assertEqual(1, config.enable_carbon_black_downloader)
+        self.assertEqual(1, config.enable_safe_alerts)
         self.assertEqual('https://cb-example.com', config.carbon_black_url)
         self.assertEqual('A' * 100, config.encrypted_carbon_black_api_token)
         self.assertEqual('test_prefix_binaryalert_batcher', config.binaryalert_batcher_name)
@@ -132,6 +135,13 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         config = manage.BinaryAlertConfig()
         with self.assertRaises(manage.InvalidConfigError):
             config.encrypted_carbon_black_api_token = 'ABCD'
+    
+    def test_invalid_enable_safe_alerts(self):
+        """InvalidConfigError raised if enable_downloader is not an int."""
+        config = manage.BinaryAlertConfig()
+        with self.assertRaises(manage.InvalidConfigError):
+            config.enable_safe_alerts = '1'
+
 
     @mock.patch.object(manage, 'input', side_effect=_mock_input)
     @mock.patch.object(manage.BinaryAlertConfig, '_encrypt_cb_api_token')
@@ -155,6 +165,8 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         self.assertEqual('us-west-2', config.aws_region)
         self.assertEqual('new_name_prefix', config.name_prefix)
         self.assertEqual(1, config.enable_carbon_black_downloader)
+        self.assertEqual(1, config.enable_safe_alerts)
+        
 
     @mock.patch.object(manage, 'input', side_effect=_mock_input)
     @mock.patch.object(manage.BinaryAlertConfig, '_encrypt_cb_api_token')
@@ -205,6 +217,7 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         config.aws_region = 'us-west-2'
         config.name_prefix = 'new_name_prefix'
         config.enable_carbon_black_downloader = 0
+        config.enable_safe_alerts = 0
         config.carbon_black_url = 'https://example2.com'
         config.encrypted_carbon_black_api_token = 'B' * 100
         config.save()
@@ -221,6 +234,8 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         self.assertEqual(config.name_prefix, new_config.name_prefix)
         self.assertEqual(
             config.enable_carbon_black_downloader, new_config.enable_carbon_black_downloader)
+        self.assertEqual(
+            config.enable_safe_alerts, new_config.enable_safe_alerts)
         self.assertEqual(
             config.encrypted_carbon_black_api_token, new_config.encrypted_carbon_black_api_token)
 
