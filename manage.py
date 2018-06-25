@@ -164,6 +164,19 @@ class BinaryAlertConfig(object):
             CiphertextBlob=base64.b64decode(self.encrypted_carbon_black_api_token))['Plaintext']
 
     @property
+    def enable_safe_alerts(self) -> str:
+        return self._config['enable_safe_alerts']
+
+    @enable_safe_alerts.setter
+    def enable_safe_alerts(self, value: str) -> None:
+        if not re.fullmatch(self.VALID_NAME_PREFIX_FORMAT, value, re.ASCII):
+            raise InvalidConfigError(
+                'enable_safe_alerts "{}" does not match format {}'.format(
+                    value, self.VALID_NAME_PREFIX_FORMAT)
+            )
+        self._config['enable_safe_alerts'] = value
+
+    @property
     def force_destroy(self) -> str:
         return self._config['force_destroy']
 
@@ -242,6 +255,15 @@ class BinaryAlertConfig(object):
             except InvalidConfigError as error:
                 print('ERROR: {}'.format(error))
 
+        while True:  # Get safe.
+            try:
+                self.enable_safe_alerts = _get_input(
+                    'Allows safe alerys?', self.enable_safe_alerts
+                )
+                break
+            except InvalidConfigError as error:
+                print('ERROR: {}'.format(error))
+
         while True:  # Enable downloader?
             enable_downloader = _get_input(
                 'Enable the CarbonBlack downloader?',
@@ -292,6 +314,7 @@ class BinaryAlertConfig(object):
         # Go through the internal setters which have the validation logic.
         self.aws_region = self.aws_region
         self.name_prefix = self.name_prefix
+        self.enable_safe_alerts = self.enable_safe_alerts
         self.enable_carbon_black_downloader = self.enable_carbon_black_downloader
         if self.enable_carbon_black_downloader:
             # Validate CarbonBlack variables if applicable.
