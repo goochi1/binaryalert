@@ -37,7 +37,7 @@ class FakeFilesystemBase(fake_filesystem_unittest.TestCase):
 
     @staticmethod
     def _write_config(
-            region: str = 'us-test-1', prefix: str = 'test_prefix', enable_downloader: bool = True,
+            region: str = 'us-test-1', prefix: str = 'test_prefix', enable_downloader: bool = True, enable_safe: bool = True,
             cb_url: str = 'https://cb-example.com', encrypted_api_token: str = 'A'*100):
         """Create terraform.tfvars file with the given configuration values."""
         with open(manage.CONFIG_FILE, 'w') as config_file:
@@ -46,7 +46,7 @@ class FakeFilesystemBase(fake_filesystem_unittest.TestCase):
                 'aws_region = "{}" // comment2'.format(region),
                 'name_prefix = "{}" // comment3'.format(prefix),
                 'enable_carbon_black_downloader = {}'.format(1 if enable_downloader else 0),
-                'enable_safe_alerts = {}'.format(1 if enable_downloader else 0),
+                'enable_safe_alerts = {}'.format(1 if enable_safe else 0),
                 'carbon_black_url = "{}" //comment4'.format(cb_url),
                 'encrypted_carbon_black_api_token = "{}"'.format(encrypted_api_token),
                 'force_destroy = false',
@@ -137,7 +137,7 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
             config.encrypted_carbon_black_api_token = 'ABCD'
     
     def test_invalid_enable_safe_alerts(self):
-        """InvalidConfigError raised if enable_downloader is not an int."""
+        """InvalidConfigError raised if enable_safe is not an int."""
         config = manage.BinaryAlertConfig()
         with self.assertRaises(manage.InvalidConfigError):
             config.enable_safe_alerts = '1'
@@ -174,7 +174,7 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
             self, mock_encrypt: mock.MagicMock, mock_input: mock.MagicMock):
         """Test configure() without any values set - no defaults should print."""
         self._write_config(
-            region='', prefix='', enable_downloader=False, cb_url='', encrypted_api_token=''
+            region='', prefix='', enable_downloader=False, enable_safe=False, cb_url='', encrypted_api_token=''
         )
         config = manage.BinaryAlertConfig()
         config.configure()
@@ -199,6 +199,12 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
     def test_validate_valid_without_downloader(self):
         """Test validate() without any CarbonBlack values set - still valid."""
         self._write_config(enable_downloader=False, cb_url='', encrypted_api_token='')
+        config = manage.BinaryAlertConfig()
+        config.validate()
+
+    def test_validate_valid_without_safe(self):
+        """Test validate() without any CarbonBlack values set - still valid."""
+        self._write_config(enable_safe=False)
         config = manage.BinaryAlertConfig()
         config.validate()
 

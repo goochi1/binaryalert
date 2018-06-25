@@ -12,7 +12,7 @@ aws_region = "eu-west-1"
 name_prefix = "stephbianry"
 
 //option for safe alerts to be enabled
-enable_safe_alerts = 0
+enable_safe_alerts = 1
 
 /* ********** [Auto-Configured] Optional CarbonBlack Downloader ********** */
 enable_carbon_black_downloader = 0

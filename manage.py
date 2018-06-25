@@ -168,11 +168,10 @@ class BinaryAlertConfig(object):
         return self._config['enable_safe_alerts']
 
     @enable_safe_alerts.setter
-    def enable_safe_alerts(self, value: str) -> None:
-        if not re.fullmatch(self.VALID_NAME_PREFIX_FORMAT, value, re.ASCII):
+    def enable_safe_alerts(self, value: int) -> None:
+        if value not in {0, 1}:
             raise InvalidConfigError(
-                'enable_safe_alerts "{}" does not match format {}'.format(
-                    value, self.VALID_NAME_PREFIX_FORMAT)
+                'enable_safe_alerts "{}" must be either 0 or 1.'.format(value)
             )
         self._config['enable_safe_alerts'] = value
 
@@ -254,15 +253,19 @@ class BinaryAlertConfig(object):
                 break
             except InvalidConfigError as error:
                 print('ERROR: {}'.format(error))
-
-        while True:  # Get safe.
-            try:
-                self.enable_safe_alerts = _get_input(
-                    'Allows safe alerys?', self.enable_safe_alerts
-                )
+        
+        
+        while True:  # enable safe alerts?
+            enable_safe = _get_input(
+                'Enable the Safe Alerts?',
+                'yes' if self.enable_safe_alerts else 'no'
+            )
+            if enable_safe in {'yes', 'no'}:
                 break
-            except InvalidConfigError as error:
-                print('ERROR: {}'.format(error))
+            else:
+                print('ERROR: Please enter exactly "yes" or "no"')
+        self.enable_safe_alerts = 1 if enable_safe == 'yes' else 0
+
 
         while True:  # Enable downloader?
             enable_downloader = _get_input(
