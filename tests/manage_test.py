@@ -156,6 +156,7 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         mock_input.assert_has_calls([
             mock.call('AWS Region (us-test-1): '),
             mock.call('Unique name prefix, e.g. "company_team" (test_prefix): '),
+            mock.call('Enable the Safe Alert? (yes): '),
             mock.call('Enable the CarbonBlack downloader? (yes): '),
             mock.call('CarbonBlack URL (https://cb-example.com): '),
             mock.call('Change the CarbonBlack API token? (no): ')
@@ -164,17 +165,17 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         # Verify that the configuration has changed.
         self.assertEqual('us-west-2', config.aws_region)
         self.assertEqual('new_name_prefix', config.name_prefix)
-        self.assertEqual(1, config.enable_carbon_black_downloader)
         self.assertEqual(1, config.enable_safe_alerts)
+        self.assertEqual(1, config.enable_carbon_black_downloader)
         
-
+        
     @mock.patch.object(manage, 'input', side_effect=_mock_input)
     @mock.patch.object(manage.BinaryAlertConfig, '_encrypt_cb_api_token')
     def test_configure_with_no_defaults(
             self, mock_encrypt: mock.MagicMock, mock_input: mock.MagicMock):
         """Test configure() without any values set - no defaults should print."""
         self._write_config(
-            region='', prefix='', enable_downloader=False, enable_safe=False, cb_url='', encrypted_api_token=''
+            region='', prefix='', enable_safe=False, enable_downloader=False,  cb_url='', encrypted_api_token=''
         )
         config = manage.BinaryAlertConfig()
         config.configure()
@@ -184,8 +185,9 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         mock_input.assert_has_calls([
             mock.call('AWS Region: '),
             mock.call('Unique name prefix, e.g. "company_team": '),
+            mock.call('Enable the Safe Alert? (no): '),
             mock.call('Enable the CarbonBlack downloader? (no): '),
-            mock.call('CarbonBlack URL: '),
+            mock.call('CarbonBlack URL: ')
         ])
 
     def test_validate_valid_with_downloader(self):
@@ -203,7 +205,7 @@ class BinaryAlertConfigTestFakeFilesystem(FakeFilesystemBase):
         config.validate()
 
     def test_validate_valid_without_safe(self):
-        """Test validate() without any CarbonBlack values set - still valid."""
+        """Test validate() without any safe values set - still valid."""
         self._write_config(enable_safe=False)
         config = manage.BinaryAlertConfig()
         config.validate()

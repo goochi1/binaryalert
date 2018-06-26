@@ -263,7 +263,8 @@ class BinaryAlertConfig(object):
             if enable_safe in {'yes', 'no'}:
                 break
             else:
-                print('ERROR: Please enter exactly "yes" or "no"')
+                print('ERROR: Please enter exactly "yes pkeas" or "no"')
+                raise
         self.enable_safe_alerts = 1 if enable_safe == 'yes' else 0
 
 
